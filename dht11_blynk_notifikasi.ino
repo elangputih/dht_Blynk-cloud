@@ -1,52 +1,56 @@
-#define BLYNK_AUTH_TOKEN "CClU3v5S3WiZ1y2PM0xnMGnCdbA0duaU"
-
 #define BLYNK_PRINT Serial
+
+#define BLYNK_TEMPLATE_ID "TMPL61HBQuXCC"
+#define BLYNK_TEMPLATE_NAME "DHT MOnitoring"
+#define BLYNK_AUTH_TOKEN "HW8gZlEl9HuZ_lnR6ggOi1Pr3X3WebJe"
+
 #include <ESP8266WiFi.h>
 #include <BlynkSimpleEsp8266.h>
- 
-
 #include <DHT.h>
 
-char auth[] = BLYNK_AUTH_TOKEN;
+// Your WiFi credentials.
+// Set password to "" for open networks.
+char ssid[] = "Redmi 9";
+char pass[] = "elang507";
 
-char ssid[] = "Harapan Bersama";  // type your wifi name
-char pass[] = "poltekharber";  // type your wifi password
+char auth [] = BLYNK_AUTH_TOKEN;
+#define DHTPIN D1          // What digital pin we're connected to
 
-#define DHTPIN D1          // Mention the digital pin where you connected 
-#define DHTTYPE DHT11     // DHT 11  
+// Uncomment whatever type you're using!
+#define DHTTYPE DHT11     // DHT 11
+
 DHT dht(DHTPIN, DHTTYPE);
-BlynkTimer timer;
 
-
-
-void setup(){
+void setup()
+{
    Serial.begin(115200);
-  
-  Blynk.begin(auth, ssid, pass, "blynk.cloud", 80);
-  dht.begin();
-  timer.setInterval(2500L, sendSensor);
+  // coneksi dengan wifi
+  WiFi.hostname("NodeMCU");
+  WiFi.begin(ssid, pass);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay (1000);
+    Serial.println ("conecting to wifi...");
+  }
+ 
+   Blynk.begin(BLYNK_AUTH_TOKEN, ssid, pass);
+   // menginisiasi sensor dht 
+   dht.begin();
 }
 
-void loop(){
-  Blynk.run();
-  timer.run();
-}
-void sendSensor(){
-  float h = dht.readHumidity();
-  float t = dht.readTemperature(); // or dht.readTemperature(true) for Fahrenheit
-  if (isnan(h) || isnan(t)) {
-    Serial.println("Failed to read from DHT sensor!");
-    return;
-  }
-  Blynk.virtualWrite(V0, t);
-  Blynk.virtualWrite(V1, h);
+void loop()
+{
+  float humidity = dht.readHumidity();
+  float temperature = dht.readTemperature();
+
   
-  Serial.print("SUHU : ");
-  Serial.print(t);
-  Serial.print("|| KELEMBAPAN : ");
-  Serial.println(h);
+  Serial.println("Temperature: ");
+  Serial.println(temperature);
+  Serial.println(" °C, Humidity: ");
+  Serial.println(humidity);
+  Serial.println(" %");
 
+  Blynk.virtualWrite(V0, humidity);
+  Blynk.virtualWrite(V1, temperature);
 
-  //if(t > 30){
-    //Blynk.logEvent("notifikasi","Suhu diatas 30 Derajat celcius");
-  }
+  delay(1000); // Update every 2 seconds
+}
